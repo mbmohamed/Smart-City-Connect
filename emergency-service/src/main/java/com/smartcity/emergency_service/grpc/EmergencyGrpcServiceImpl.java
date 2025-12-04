@@ -138,11 +138,13 @@ public class EmergencyGrpcServiceImpl extends EmergencyServiceGrpc.EmergencyServ
         try {
             List<EmergencyResource> resources;
 
-            if (request.hasCoordinates() && request.getRadiusKm() > 0) {
+            // Check if location parameter is provided
+            if (request.getLocation() != null && !request.getLocation().isEmpty() &&
+                    request.getRadiusKm() > 0) {
                 // Find nearby resources
                 resources = resourceService.findNearbyResources(
-                        request.getCoordinates().getLatitude(),
-                        request.getCoordinates().getLongitude(),
+                        request.getLocation().getLatitude(),
+                        request.getLocation().getLongitude(),
                         request.getRadiusKm(),
                         EmergencyResource.ResourceStatus.AVAILABLE);
             } else if (request.getType() != ResourceType.RESOURCE_TYPE_UNSPECIFIED) {

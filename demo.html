@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart City Platform - Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .service-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .service-card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .badge-rest {
+            background: #10b981;
+            color: white;
+        }
+        
+        .badge-soap {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .result-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .result-box.success {
+            border-left-color: #10b981;
+            background: #ecfdf5;
+        }
+        
+        .result-box.error {
+            border-left-color: #ef4444;
+            background: #fee;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-online {
+            background: #10b981;
+            box-shadow: 0 0 8px #10b981;
+        }
+        
+        .status-offline {
+            background: #ef4444;
+            box-shadow: 0 0 8px #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌆 Smart City Platform - Demo Interactive</h1>
+        
+        <!-- Mobility Service (REST) -->
+        <div class="service-card">
+            <h2>
+                <span class="status-indicator status-online"></span>
+                Service Mobilité 
+                <span class="badge badge-rest">REST API</span>
+            </h2>
+            <p><strong>Port:</strong> 8080 | <strong>Endpoint:</strong> /api/v1/transport/lines</p>
+            
+            <div class="btn-group">
+                <button class="btn-primary" onclick="getAllLines()">📋 Obtenir toutes les lignes</button>
+                <button class="btn-success" onclick="createLine()">➕ Créer une nouvelle ligne</button>
+            </div>
+            
+            <div class="form-group">
+                <label>Créer une ligne de transport</label>
+                <input type="text" id="lineName" placeholder="Nom (ex: Bus 15)" />
+                <select id="lineType">
+                    <option value="BUS">Bus</option>
+                    <option value="METRO">Métro</option>
+                    <option value="TRAIN">Train</option>
+                </select>
+                <select id="lineStatus">
+                    <option value="ON_TIME">À l'heure</option>
+                    <option value="DELAYED">Retardé</option>
+                    <option value="CANCELLED">Annulé</option>
+                </select>
+            </div>
+            
+            <div id="restResult" class="result-box" style="display: none;"></div>
+        </div>
+        
+        <!-- Air Quality Service (SOAP) -->
+        <div class="service-card">
+            <h2>
+                <span class="status-indicator status-online"></span>
+                Service Qualité de l'Air 
+                <span class="badge badge-soap">SOAP</span>
+            </h2>
+            <p><strong>Port:</strong> 8081 | <strong>Endpoint:</strong> /ws</p>
+            
+            <div class="btn-group">
+                <button class="btn-warning" onclick="getWSDL()">📄 Voir le WSDL</button>
+                <button class="btn-primary" onclick="getAirQuality()">🌫️ Obtenir Qualité de l'Air</button>
+            </div>
+            
+            <div class="form-group">
+                <label>Zone à consulter</label>
+                <input type="text" id="zoneId" placeholder="Zone ID (ex: downtown)" value="downtown" />
+            </div>
+            
+            <div id="soapResult" class="result-box" style="display: none;"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Mobility Service (REST) Functions
+        async function getAllLines() {
+            const resultBox = document.getElementById('restResult');
+            resultBox.style.display = 'block';
+            resultBox.className = 'result-box';
+            resultBox.textContent = 'Chargement...';
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/v1/transport/lines');
+                const data = await response.json();
+                resultBox.className = 'result-box success';
+                resultBox.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultBox.className = 'result-box error';
+                resultBox.textContent = 'Erreur: ' + error.message + '\n\nAssurez-vous que mobility-service tourne sur le port 8080';
+            }
+        }
+        
+        async function createLine() {
+            const name = document.getElementById('lineName').value;
+            const type = document.getElementById('lineType').value;
+            const status = document.getElementById('lineStatus').value;
+            
+            if (!name) {
+                alert('Veuillez entrer un nom de ligne');
+                return;
+            }
+            
+            const resultBox = document.getElementById('restResult');
+            resultBox.style.display = 'block';
+            resultBox.className = 'result-box';
+            resultBox.textContent = 'Création en cours...';
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/v1/transport/lines', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, type, status })
+                });
+                const data = await response.json();
+                resultBox.className = 'result-box success';
+                resultBox.textContent = '✅ Ligne créée avec succès!\n\n' + JSON.stringify(data, null, 2);
+                document.getElementById('lineName').value = '';
+            } catch (error) {
+                resultBox.className = 'result-box error';
+                resultBox.textContent = 'Erreur: ' + error.message;
+            }
+        }
+        
+        // Air Quality Service (SOAP) Functions
+        async function getWSDL() {
+            const resultBox = document.getElementById('soapResult');
+            resultBox.style.display = 'block';
+            resultBox.className = 'result-box';
+            resultBox.textContent = 'Récupération du WSDL...';
+            
+            try {
+                const response = await fetch('http://localhost:8081/ws/air-quality.wsdl');
+                const wsdl = await response.text();
+                resultBox.className = 'result-box success';
+                resultBox.textContent = wsdl;
+            } catch (error) {
+                resultBox.className = 'result-box error';
+                resultBox.textContent = 'Erreur: ' + error.message + '\n\nAssurez-vous que air-quality-service tourne sur le port 8081';
+            }
+        }
+        
+        async function getAirQuality() {
+            const zoneId = document.getElementById('zoneId').value;
+            
+            if (!zoneId) {
+                alert('Veuillez entrer une zone');
+                return;
+            }
+            
+            const soapRequest = `<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" 
+                  xmlns:air="http://smartcity.com/air-quality-service/schema">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <air:getAirQualityRequest>
+         <air:zoneId>${zoneId}</air:zoneId>
+      </air:getAirQualityRequest>
+   </soapenv:Body>
+</soapenv:Envelope>`;
+            
+            const resultBox = document.getElementById('soapResult');
+            resultBox.style.display = 'block';
+            resultBox.className = 'result-box';
+            resultBox.textContent = 'Envoi de la requête SOAP...';
+            
+            try {
+                const response = await fetch('http://localhost:8081/ws', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/xml',
+                    },
+                    body: soapRequest
+                });
+                const xmlResponse = await response.text();
+                
+                // Parse the response
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlResponse, "text/xml");
+                
+                resultBox.className = 'result-box success';
+                resultBox.textContent = '✅ Réponse SOAP reçue!\n\n' + xmlResponse;
+            } catch (error) {
+                resultBox.className = 'result-box error';
+                resultBox.textContent = 'Erreur: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

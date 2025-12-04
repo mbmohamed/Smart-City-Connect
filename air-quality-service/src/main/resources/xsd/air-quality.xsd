@@ -1,0 +1,32 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://smartcity.com/air-quality-service/schema"
+           targetNamespace="http://smartcity.com/air-quality-service/schema" elementFormDefault="qualified">
+
+    <xs:element name="getAirQualityRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="zoneId" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="getAirQualityResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="airQualityData" type="tns:airQualityData"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="airQualityData">
+        <xs:sequence>
+            <xs:element name="zoneId" type="xs:string"/>
+            <xs:element name="aqi" type="xs:int"/>
+            <xs:element name="pm25" type="xs:double"/>
+            <xs:element name="pm10" type="xs:double"/>
+            <xs:element name="no2" type="xs:double"/>
+            <xs:element name="status" type="xs:string"/> <!-- GOOD, MODERATE, UNHEALTHY -->
+            <xs:element name="timestamp" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>

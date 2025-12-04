@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Wind, RefreshCw, TrendingUp, AlertTriangle } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Wind, RefreshCw, TrendingUp, AlertTriangle, MapPin, Thermometer, Droplets, Activity } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import airQualityService from '../services/airQualityService';
 
 function AirQualityMonitor() {
@@ -25,7 +25,7 @@ function AirQualityMonitor() {
             const data = await airQualityService.getAllZones();
             setZones(data);
         } catch (error) {
-            console.error('Error loading zones');
+            console.log('Loading zones...');
         }
     };
 
@@ -34,61 +34,49 @@ function AirQualityMonitor() {
             setLoading(true);
             const data = await airQualityService.getAirQuality(selectedZone);
             setAirQualityData(data);
-
-            // Add to history for chart
             setHistory(prev => [
-                ...prev.slice(-9), // Keep last 9
-                {
-                    time: new Date().toLocaleTimeString(),
-                    aqi: data.aqi,
-                    pm25: data.pm25,
-                    pm10: data.pm10
-                }
+                ...prev.slice(-9),
+                { time: new Date().toLocaleTimeString(), aqi: data.aqi, pm25: data.pm25, pm10: data.pm10 }
             ]);
         } catch (error) {
-            alert('Erreur lors du chargement des données SOAP');
+            console.log('Error loading data');
         } finally {
             setLoading(false);
         }
     };
 
-    const getAQIColor = (aqi) => {
-        if (aqi <= 50) return 'text-green-400';
-        if (aqi <= 100) return 'text-yellow-400';
-        if (aqi <= 150) return 'text-orange-400';
-        return 'text-red-400';
+    const getAQIConfig = (aqi) => {
+        if (aqi <= 50) return { label: 'Excellent', gradient: 'from-emerald-400 to-teal-500', color: '#34d399', bgClass: 'bg-emerald-500/20' };
+        if (aqi <= 100) return { label: 'Bon', gradient: 'from-lime-400 to-green-500', color: '#a3e635', bgClass: 'bg-lime-500/20' };
+        if (aqi <= 150) return { label: 'Modéré', gradient: 'from-amber-400 to-orange-500', color: '#fbbf24', bgClass: 'bg-amber-500/20' };
+        return { label: 'Mauvais', gradient: 'from-rose-400 to-red-500', color: '#fb7185', bgClass: 'bg-rose-500/20' };
     };
 
-    const getAQIBgColor = (aqi) => {
-        if (aqi <= 50) return 'from-green-500 to-green-700';
-        if (aqi <= 100) return 'from-yellow-500 to-yellow-700';
-        if (aqi <= 150) return 'from-orange-500 to-orange-700';
-        return 'from-red-500 to-red-700';
-    };
+    const pollutants = airQualityData ? [
+        { name: 'PM2.5', value: airQualityData.pm25, unit: 'μg/m³', max: 100, color: '#fbbf24', gradient: 'from-amber-400 to-orange-500' },
+        { name: 'PM10', value: airQualityData.pm10, unit: 'μg/m³', max: 150, color: '#f97316', gradient: 'from-orange-400 to-red-500' },
+        { name: 'CO2', value: airQualityData.co2, unit: 'ppm', max: 1000, color: '#3b82f6', gradient: 'from-blue-400 to-indigo-500' }
+    ] : [];
 
-    const getQualityLabel = (quality) => {
-        const labels = {
-            GOOD: 'Bon',
-            MODERATE: 'Modéré',
-            UNHEALTHY: 'Mauvais',
-            HAZARDOUS: 'Dangereux'
-        };
-        return labels[quality] || quality;
-    };
+    const aqiConfig = airQualityData ? getAQIConfig(airQualityData.aqi) : null;
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8">
             {/* Header */}
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold mb-2">Qualité de l'Air</h1>
-                    <p className="text-text-secondary">Surveillance environnementale en temps réel (SOAP API)</p>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
+                        <Wind className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-bold text-text-primary">Qualité de l'Air</h1>
+                        <div className="flex items-center gap-2 mt-1">
+                            <span className="badge badge-success">SOAP API</span>
+                            <span className="text-text-secondary text-sm">Port 8081</span>
+                        </div>
+                    </div>
                 </div>
-                <button
-                    onClick={fetchAirQuality}
-                    disabled={loading}
-                    className="flex items-center space-x-2 btn-primary"
-                >
+                <button onClick={fetchAirQuality} disabled={loading} className="btn-primary">
                     <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                     <span>Actualiser</span>
                 </button>
@@ -96,123 +84,133 @@ function AirQualityMonitor() {
 
             {/* Zone Selector */}
             <div className="card">
-                <label className="block text-sm font-medium mb-2">Sélectionner une zone</label>
-                <select
-                    value={selectedZone}
-                    onChange={(e) => setSelectedZone(e.target.value)}
-                    className="input-field w-full max-w-md"
-                >
+                <div className="flex items-center gap-3 mb-4">
+                    <MapPin className="w-5 h-5 text-primary-light" />
+                    <span className="font-medium text-text-primary">Sélectionner une zone</span>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {zones.map(zone => (
-                        <option key={zone.id} value={zone.id}>
-                            {zone.name} ({zone.id})
-                        </option>
+                        <button
+                            key={zone.id}
+                            onClick={() => setSelectedZone(zone.id)}
+                            className={`p-4 rounded-xl border transition-all ${selectedZone === zone.id
+                                    ? 'bg-primary/20 border-primary/50 text-text-primary'
+                                    : 'bg-white/5 border-white/10 text-text-secondary hover:border-white/20'
+                                }`}
+                        >
+                            <div className="font-medium">{zone.name}</div>
+                            <div className="text-xs text-text-muted mt-1">{zone.id}</div>
+                        </button>
                     ))}
-                </select>
+                </div>
             </div>
 
-            {/* AQI Display */}
-            {airQualityData && (
-                <div className="grid md:grid-cols-2 gap-6">
-                    {/* Main AQI Gauge */}
-                    <div className="card">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-2xl font-bold">Indice de Qualité de l'Air</h2>
-                            <Wind className="w-8 h-8 text-blue-400" />
-                        </div>
-                        <div className={`text-center py-8 bg-gradient-to-r ${getAQIBgColor(airQualityData.aqi)} rounded-lg mb-4`}>
-                            <div className="text-7xl font-bold text-white mb-2">
-                                {airQualityData.aqi}
-                            </div>
-                            <div className="text-2xl text-white font-semibold">
-                                {getQualityLabel(airQualityData.quality)}
-                            </div>
-                        </div>
-                        <div className="text-sm text-text-secondary text-center">
-                            Dernière mise à jour : {new Date(airQualityData.timestamp).toLocaleString()}
-                        </div>
-                    </div>
-
-                    {/* Pollutants */}
-                    <div className="card">
-                        <h2 className="text-2xl font-bold mb-4">Polluants</h2>
-                        <div className="space-y-4">
-                            <div className="bg-gray-700 rounded-lg p-4">
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-text-secondary">PM2.5</span>
-                                    <span className="text-2xl font-bold">{airQualityData.pm25} μg/m³</span>
+            {airQualityData && aqiConfig && (
+                <>
+                    {/* Main AQI Display */}
+                    <div className="grid md:grid-cols-3 gap-6">
+                        <div className="md:col-span-1">
+                            <div className={`card h-full ${aqiConfig.bgClass} border-0`}>
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-lg font-semibold text-text-primary">Indice AQI</h2>
+                                    <Activity className="w-5 h-5" style={{ color: aqiConfig.color }} />
                                 </div>
-                                <div className="w-full bg-gray-600 rounded-full h-2">
+                                <div className="text-center py-6">
                                     <div
-                                        className="bg-yellow-400 h-2 rounded-full"
-                                        style={{ width: `${Math.min((airQualityData.pm25 / 100) * 100, 100)}%` }}
-                                    />
+                                        className="text-7xl font-bold mb-2"
+                                        style={{ color: aqiConfig.color }}
+                                    >
+                                        {airQualityData.aqi}
+                                    </div>
+                                    <div
+                                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${aqiConfig.gradient}`}
+                                    >
+                                        <span className="text-white font-semibold">{aqiConfig.label}</span>
+                                    </div>
+                                </div>
+                                <div className="text-sm text-text-muted text-center mt-4">
+                                    {new Date(airQualityData.timestamp).toLocaleString()}
                                 </div>
                             </div>
+                        </div>
 
-                            <div className="bg-gray-700 rounded-lg p-4">
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-text-secondary">PM10</span>
-                                    <span className="text-2xl font-bold">{airQualityData.pm10} μg/m³</span>
-                                </div>
-                                <div className="w-full bg-gray-600 rounded-full h-2">
-                                    <div
-                                        className="bg-orange-400 h-2 rounded-full"
-                                        style={{ width: `${Math.min((airQualityData.pm10 / 150) * 100, 100)}%` }}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="bg-gray-700 rounded-lg p-4">
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-text-secondary">CO2</span>
-                                    <span className="text-2xl font-bold">{airQualityData.co2} ppm</span>
-                                </div>
-                                <div className="w-full bg-gray-600 rounded-full h-2">
-                                    <div
-                                        className="bg-blue-400 h-2 rounded-full"
-                                        style={{ width: `${Math.min((airQualityData.co2 / 1000) * 100, 100)}%` }}
-                                    />
+                        {/* Pollutants */}
+                        <div className="md:col-span-2">
+                            <div className="card h-full">
+                                <h2 className="text-lg font-semibold text-text-primary mb-6">Polluants</h2>
+                                <div className="space-y-6">
+                                    {pollutants.map((pollutant, idx) => (
+                                        <div key={idx} className="animate-in" style={{ animationDelay: `${idx * 100}ms` }}>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <div className="flex items-center gap-2">
+                                                    <div className={`w-3 h-3 rounded-full bg-gradient-to-r ${pollutant.gradient}`} />
+                                                    <span className="font-medium text-text-primary">{pollutant.name}</span>
+                                                </div>
+                                                <span className="text-lg font-bold" style={{ color: pollutant.color }}>
+                                                    {pollutant.value} <span className="text-sm font-normal text-text-muted">{pollutant.unit}</span>
+                                                </span>
+                                            </div>
+                                            <div className="progress-bar">
+                                                <div
+                                                    className="h-full rounded-full transition-all duration-500"
+                                                    style={{
+                                                        width: `${Math.min((pollutant.value / pollutant.max) * 100, 100)}%`,
+                                                        background: `linear-gradient(90deg, ${pollutant.color}, ${pollutant.color}88)`
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+
+                    {/* Chart */}
+                    {history.length > 0 && (
+                        <div className="card">
+                            <div className="flex items-center gap-3 mb-6">
+                                <TrendingUp className="w-5 h-5 text-primary-light" />
+                                <h2 className="text-lg font-semibold text-text-primary">Évolution Temporelle</h2>
+                            </div>
+                            <ResponsiveContainer width="100%" height={300}>
+                                <AreaChart data={history}>
+                                    <defs>
+                                        <linearGradient id="aqiGradient" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                    <XAxis dataKey="time" stroke="#6B7280" fontSize={12} />
+                                    <YAxis stroke="#6B7280" fontSize={12} />
+                                    <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            borderRadius: '12px',
+                                            backdropFilter: 'blur(10px)'
+                                        }}
+                                    />
+                                    <Legend />
+                                    <Area type="monotone" dataKey="aqi" stroke="#6366F1" fill="url(#aqiGradient)" strokeWidth={2} name="AQI" />
+                                    <Line type="monotone" dataKey="pm25" stroke="#fbbf24" strokeWidth={2} dot={false} name="PM2.5" />
+                                    <Line type="monotone" dataKey="pm10" stroke="#f97316" strokeWidth={2} dot={false} name="PM10" />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                    )}
+                </>
             )}
 
-            {/* Historical Chart */}
-            {history.length > 0 && (
-                <div className="card">
-                    <h2 className="text-2xl font-bold mb-4 flex items-center">
-                        <TrendingUp className="w-6 h-6 mr-2 text-blue-400" />
-                        Évolution (10 dernières mesures)
-                    </h2>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <LineChart data={history}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                            <XAxis dataKey="time" stroke="#94A3B8" />
-                            <YAxis stroke="#94A3B8" />
-                            <Tooltip
-                                contentStyle={{
-                                    backgroundColor: '#1E293B',
-                                    border: '1px solid #374151',
-                                    borderRadius: '8px'
-                                }}
-                            />
-                            <Legend />
-                            <Line type="monotone" dataKey="aqi" stroke="#3B82F6" strokeWidth={2} name="AQI" />
-                            <Line type="monotone" dataKey="pm25" stroke="#F59E0B" strokeWidth={2} name="PM2.5" />
-                            <Line type="monotone" dataKey="pm10" stroke="#F97316" strokeWidth={2} name="PM10" />
-                        </LineChart>
-                    </ResponsiveContainer>
-                </div>
-            )}
-
-            {/* Info */}
-            <div className="card bg-blue-900 bg-opacity-30 border border-blue-700">
-                <div className="flex items-start space-x-3">
-                    <AlertTriangle className="w-6 h-6 text-blue-400 flex-shrink-0 mt-1" />
+            {/* Info Box */}
+            <div className="card bg-gradient-to-r from-primary/10 to-accent-cyan/10 border-primary/20">
+                <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
+                        <AlertTriangle className="w-5 h-5 text-primary-light" />
+                    </div>
                     <div>
-                        <h3 className="font-bold mb-1">Protocole SOAP</h3>
+                        <h3 className="font-semibold text-text-primary mb-1">Protocole SOAP</h3>
                         <p className="text-sm text-text-secondary">
                             Cette page utilise des requêtes SOAP XML pour communiquer avec le service de qualité de l'air.
                             Les données sont parsées depuis les réponses XML et affichées en temps réel.

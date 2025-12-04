@@ -1,0 +1,124 @@
+syntax = "proto3";
+
+package smartcity.emergency;
+
+option java_multiple_files = true;
+option java_package = "com.smartcity.emergency_service.grpc";
+
+// Service principal d'urgence
+service EmergencyService {
+  // Créer une alerte d'urgence
+  rpc CreateAlert (CreateAlertRequest) returns (AlertResponse);
+  
+  // Obtenir le statut d'une alerte
+  rpc GetAlertStatus (GetAlertRequest) returns (AlertResponse);
+  
+  // Mettre à jour le statut d'une alerte
+  rpc UpdateAlertStatus (UpdateAlertRequest) returns (AlertResponse);
+  
+  // Stream d'alertes en temps réel
+  rpc StreamAlerts (StreamAlertsRequest) returns (stream AlertResponse);
+  
+  // Obtenir les ressources disponibles (ambulances, pompiers)
+  rpc GetAvailableResources (ResourceRequest) returns (ResourceResponse);
+}
+
+message CreateAlertRequest {
+  AlertType type = 1;
+  string location = 2;
+  Severity severity = 3;
+  string description = 4;
+  string reportedBy = 5;
+  Coordinates coordinates = 6;
+}
+
+message AlertResponse {
+  string alertId = 1;
+  AlertType type = 2;
+  string location = 3;
+  Severity severity = 4;
+  string description = 5;
+  AlertStatus status = 6;
+  int64 timestamp = 7;
+  string assignedUnit = 8;
+}
+
+message GetAlertRequest {
+  string alertId = 1;
+}
+
+message UpdateAlertRequest {
+  string alertId = 1;
+  AlertStatus newStatus = 2;
+  string assignedUnit = 3;
+}
+
+message StreamAlertsRequest {
+  AlertType typeFilter = 1; // Optionnel
+  Severity minSeverity = 2; // Optionnel
+}
+
+message ResourceRequest {
+  ResourceType type = 1;
+  Coordinates location = 2;
+  double radiusKm = 3;
+}
+
+message ResourceResponse {
+  repeated Resource resources = 1;
+}
+
+message Resource {
+  string resourceId = 1;
+  ResourceType type = 2;
+  string location = 3;
+  ResourceStatus status = 4;
+  Coordinates coordinates = 5;
+}
+
+message Coordinates {
+  double latitude = 1;
+  double longitude = 2;
+}
+
+enum AlertType {
+  ALERT_TYPE_UNSPECIFIED = 0;
+  MEDICAL_EMERGENCY = 1;
+  FIRE = 2;
+  ACCIDENT = 3;
+  PUBLIC_HEALTH_THREAT = 4;
+  NATURAL_DISASTER = 5;
+}
+
+enum Severity {
+  SEVERITY_UNSPECIFIED = 0;
+  LOW = 1;
+  MEDIUM = 2;
+  HIGH = 3;
+  CRITICAL = 4;
+}
+
+enum AlertStatus {
+  ALERT_STATUS_UNSPECIFIED = 0;
+  PENDING = 1;
+  ACKNOWLEDGED = 2;
+  DISPATCHED = 3;
+  ON_SITE = 4;
+  RESOLVED = 5;
+  CANCELLED = 6;
+}
+
+enum ResourceType {
+  RESOURCE_TYPE_UNSPECIFIED = 0;
+  AMBULANCE = 1;
+  FIRE_TRUCK = 2;
+  POLICE = 3;
+  HELICOPTER = 4;
+}
+
+enum ResourceStatus {
+  RESOURCE_STATUS_UNSPECIFIED = 0;
+  AVAILABLE = 1;
+  BUSY = 2;
+  OFFLINE = 3;
+}

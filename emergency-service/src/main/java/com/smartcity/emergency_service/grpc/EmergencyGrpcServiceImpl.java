@@ -37,14 +37,14 @@ public class EmergencyGrpcServiceImpl extends EmergencyServiceGrpc.EmergencyServ
             alert.setSeverity(mapSeverity(request.getSeverity()));
             alert.setDescription(request.getDescription());
             alert.setReportedBy(request.getReportedBy());
-            
+
             if (request.hasCoordinates()) {
                 alert.setLatitude(request.getCoordinates().getLatitude());
                 alert.setLongitude(request.getCoordinates().getLongitude());
             }
 
             // Save alert
-            Alert saved Alert = alertService.createAlert(alert);
+            Alert savedAlert = alertService.createAlert(alert);
 
             // Convert entity to gRPC response
             AlertResponse response = mapToAlertResponse(savedAlert);

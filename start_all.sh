@@ -39,6 +39,19 @@ nohup java -jar emergency-gateway/target/emergency-gateway-0.0.1-SNAPSHOT.jar > 
 echo "   - Starting Citizen Engagement Service (Port 8084)..."
 nohup java -jar citizen-engagement-service/target/citizen-engagement-service-0.0.1-SNAPSHOT.jar > logs/citizen.log 2>&1 &
 
+# AI Orchestrator Service
+echo "   - Starting AI Orchestrator Service (Port 8085)..."
+cd ai-orchestrator-service
+if [ ! -d "venv" ]; then
+    python3 -m venv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+else
+    source venv/bin/activate
+fi
+nohup python -m uvicorn main:app --host 0.0.0.0 --port 8085 > ../logs/orchestrator.log 2>&1 &
+cd ..
+
 # 3. Start Frontend
 echo -e "${GREEN}3. Starting Frontend...${NC}"
 cd smart-city-frontend

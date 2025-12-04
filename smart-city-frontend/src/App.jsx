@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import MobilityHub from './pages/MobilityHub';
 import AirQualityMonitor from './pages/AirQualityMonitor';
 import EmergencyCenter from './pages/EmergencyCenter';
+import ChatBot from './components/ChatBot';
 
 import { ApolloProvider } from '@apollo/client';
 import client from './services/citizenService';
@@ -25,6 +26,7 @@ function App() {
               <Route path="/citizen" element={<CitizenEngagement />} />
             </Routes>
           </div>
+          <ChatBot />
         </div>
       </Router>
     </ApolloProvider>
@@ -32,3 +34,4 @@ function App() {
 }
 
 export default App;
+

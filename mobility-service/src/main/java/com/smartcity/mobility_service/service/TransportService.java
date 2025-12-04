@@ -43,6 +43,6 @@ public class TransportService {
     }
 
     private TransportLine convertToEntity(TransportLineDTO dto) {
-        return new TransportLine(dto.getId(), dto.getName(), dto.getType(), dto.getStatus());
+        return new TransportLine(dto.id(), dto.name(), dto.type(), dto.status());
     }
 }

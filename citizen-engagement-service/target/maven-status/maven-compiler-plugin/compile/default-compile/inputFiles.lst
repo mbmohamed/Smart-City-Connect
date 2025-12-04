@@ -1,0 +1,8 @@
+/mnt/data2/projet-soc/citizen-engagement-service/src/main/java/com/smartcity/citizen_engagement/CitizenEngagementApplication.java
+/mnt/data2/projet-soc/citizen-engagement-service/src/main/java/com/smartcity/citizen_engagement/config/DataSeeder.java
+/mnt/data2/projet-soc/citizen-engagement-service/src/main/java/com/smartcity/citizen_engagement/controller/CitizenEngagementController.java
+/mnt/data2/projet-soc/citizen-engagement-service/src/main/java/com/smartcity/citizen_engagement/model/Event.java
+/mnt/data2/projet-soc/citizen-engagement-service/src/main/java/com/smartcity/citizen_engagement/model/Issue.java
+/mnt/data2/projet-soc/citizen-engagement-service/src/main/java/com/smartcity/citizen_engagement/model/IssueStatus.java
+/mnt/data2/projet-soc/citizen-engagement-service/src/main/java/com/smartcity/citizen_engagement/repository/EventRepository.java
+/mnt/data2/projet-soc/citizen-engagement-service/src/main/java/com/smartcity/citizen_engagement/repository/IssueRepository.java

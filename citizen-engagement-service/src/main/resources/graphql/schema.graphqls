@@ -1,0 +1,35 @@
+type Query {
+    getAllEvents: [Event]
+    getEventById(id: ID!): Event
+    getAllIssues: [Issue]
+    getIssueById(id: ID!): Issue
+}
+
+type Mutation {
+    reportIssue(title: String!, description: String!, reportedBy: String!): Issue
+    updateIssueStatus(id: ID!, status: IssueStatus!): Issue
+}
+
+type Event {
+    id: ID!
+    title: String!
+    description: String
+    date: String!
+    location: String!
+    category: String!
+}
+
+type Issue {
+    id: ID!
+    title: String!
+    description: String
+    status: IssueStatus!
+    reportedBy: String!
+    dateReported: String!
+}
+
+enum IssueStatus {
+    OPEN
+    IN_PROGRESS
+    RESOLVED
+}

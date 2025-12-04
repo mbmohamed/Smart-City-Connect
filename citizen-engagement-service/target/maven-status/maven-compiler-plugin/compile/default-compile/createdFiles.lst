@@ -1,0 +1,8 @@
+com/smartcity/citizen_engagement/model/IssueStatus.class
+com/smartcity/citizen_engagement/model/Issue.class
+com/smartcity/citizen_engagement/repository/IssueRepository.class
+com/smartcity/citizen_engagement/config/DataSeeder.class
+com/smartcity/citizen_engagement/CitizenEngagementApplication.class
+com/smartcity/citizen_engagement/repository/EventRepository.class
+com/smartcity/citizen_engagement/controller/CitizenEngagementController.class
+com/smartcity/citizen_engagement/model/Event.class

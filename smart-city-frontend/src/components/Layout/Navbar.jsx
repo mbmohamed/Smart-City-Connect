@@ -1,15 +1,16 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Bus, Wind, Siren, Home } from 'lucide-react';
+import { LayoutDashboard, Bus, Wind, Ambulance, Users } from 'lucide-react';
 
 function Navbar() {
     const location = useLocation();
 
     const navItems = [
-        { path: '/', icon: Home, label: 'Dashboard' },
+        { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
         { path: '/mobility', icon: Bus, label: 'Mobilité', color: 'text-blue-400' },
         { path: '/air-quality', icon: Wind, label: 'Qualité de l\'Air', color: 'text-green-400' },
-        { path: '/emergency', icon: Siren, label: 'Urgences', color: 'text-red-400' },
+        { path: '/emergency', icon: Ambulance, label: 'Urgences', color: 'text-red-400' },
+        { path: '/citizen', icon: Users, label: 'Citoyens', color: 'text-yellow-400' },
     ];
 
     return (

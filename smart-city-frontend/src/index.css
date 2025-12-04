@@ -1,7 +1,25 @@
+@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
+@theme {
+  --font-sans: "Inter", sans-serif;
+
+  --color-primary-blue: #3B82F6;
+  --color-primary-dark: #1E40AF;
+
+  --color-secondary-green: #10B981;
+  --color-secondary-yellow: #F59E0B;
+  --color-secondary-red: #EF4444;
+
+  --color-accent-red: #DC2626;
+  --color-accent-orange: #F97316;
+
+  --color-bg-dark: #0F172A;
+  --color-bg-card: #1E293B;
+
+  --color-text-primary: #F1F5F9;
+  --color-text-secondary: #94A3B8;
+}
 
 @layer base {
   body {
@@ -14,15 +32,15 @@
   .card {
     @apply bg-bg-card rounded-lg shadow-xl p-6 border border-gray-700;
   }
-  
+
   .btn-primary {
     @apply bg-primary-blue hover:bg-primary-dark text-white font-semibold py-2 px-6 rounded-lg transition-all duration-200 transform hover:scale-105;
   }
-  
+
   .btn-accent {
     @apply bg-accent-red hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-200;
   }
-  
+
   .input-field {
     @apply bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary-blue;
   }

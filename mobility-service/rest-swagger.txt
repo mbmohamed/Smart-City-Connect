@@ -1,0 +1,1 @@
+{"timestamp":"2025-12-10T16:41:13.002+00:00","status":404,"error":"Not Found","path":"/v3/api-docs"}

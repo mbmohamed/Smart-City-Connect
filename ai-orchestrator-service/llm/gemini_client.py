@@ -86,7 +86,7 @@ class GeminiOrchestrator:
                     }
                 ]
             }
-        elif "transport" in message_lower or "bus" in message_lower or "metro" in message_lower:
+        elif "transport" in message_lower or "bus" in message_lower or "metro" in message_lower or "ligne" in message_lower:
             return {
                 "intent": "check_transport",
                 "entities": {},
@@ -95,7 +95,7 @@ class GeminiOrchestrator:
                         "step": 1,
                         "service": "mobility",
                         "protocol": "REST",
-                        "operation": "GET /api/transport/lines",
+                        "operation": "GET /api/v1/transport/lines",
                         "params": {}
                     }
                 ]

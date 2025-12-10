@@ -1,12 +1,12 @@
 import axios from 'axios';
 
-const GATEWAY_URL = 'http://localhost:8083/api/emergency';
+const API_BASE_URL = '/api/emergency';
 
 const emergencyService = {
     // Get all active alerts
     async getActiveAlerts() {
         try {
-            const response = await axios.get(`${GATEWAY_URL}/alerts`);
+            const response = await axios.get(`${API_BASE_URL}/alerts`);
             return response.data;
         } catch (error) {
             console.error('Error fetching alerts:', error);

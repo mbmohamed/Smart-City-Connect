@@ -1,0 +1,22 @@
+# Build artifacts
+target/
+dist/
+build/
+node_modules/
+__pycache__/
+venv/
+*.pyc
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

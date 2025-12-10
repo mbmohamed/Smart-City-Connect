@@ -3,56 +3,85 @@
 # Colors for output
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
+RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}🚀 Starting Smart City Connect...${NC}"
+echo -e "${BLUE}🚀 Starting Smart City Connect (Docker Edition)...${NC}"
 
-# 1. Start MySQL
-echo -e "${GREEN}1. Starting MySQL Database...${NC}"
-docker start smartcity-mysql
-sleep 5
-
-# 2. Start Backend Services
-echo -e "${GREEN}2. Starting Backend Services...${NC}"
-
-# Mobility Service
-echo "   - Starting Mobility Service (Port 8080)..."
-nohup java -jar mobility-service/target/mobility-service-0.0.1-SNAPSHOT.jar > logs/mobility.log 2>&1 &
-
-# Air Quality Service
-echo "   - Starting Air Quality Service (Port 8081)..."
-nohup java -jar air-quality-service/target/air-quality-service-0.0.1-SNAPSHOT.jar > logs/airquality.log 2>&1 &
-
-# Emergency Service
-echo "   - Starting Emergency Service (Port 9093)..."
-nohup java -jar emergency-service/target/emergency-service-0.0.1-SNAPSHOT.jar > logs/emergency.log 2>&1 &
-
-# Wait for gRPC service to be ready
-echo "   - Waiting for gRPC service..."
-sleep 10
-
-# Emergency Gateway
-echo "   - Starting Emergency Gateway (Port 8083)..."
-nohup java -jar emergency-gateway/target/emergency-gateway-0.0.1-SNAPSHOT.jar > logs/gateway.log 2>&1 &
-
-# Citizen Engagement Service
-echo "   - Starting Citizen Engagement Service (Port 8084)..."
-nohup java -jar citizen-engagement-service/target/citizen-engagement-service-0.0.1-SNAPSHOT.jar > logs/citizen.log 2>&1 &
-
-# AI Orchestrator Service
-echo "   - Starting AI Orchestrator Service (Port 8085)..."
-cd ai-orchestrator-service
-if [ ! -d "venv" ]; then
-    python3 -m venv venv
-    source venv/bin/activate
-    pip install -r requirements.txt
-else
-    source venv/bin/activate
+# 1. Check Prerequisites
+echo -e "${GREEN}1. Checking Prerequisites...${NC}"
+if ! command -v docker &> /dev/null; then
+    echo -e "${RED}Error: docker is not installed.${NC}"
+    exit 1
 fi
-nohup python -m uvicorn main:app --host 0.0.0.0 --port 8085 > ../logs/orchestrator.log 2>&1 &
-cd ..
+if ! command -v mvn &> /dev/null; then
+    echo -e "${RED}Error: mvn (Maven) is not installed.${NC}"
+    echo "Please install Maven to build the microservices."
+    exit 1
+fi
 
-# 3. Start Frontend
-echo -e "${GREEN}3. Starting Frontend...${NC}"
-cd smart-city-frontend
-npm run dev
+# 2. Build Microservices
+echo -e "${GREEN}2. Building Microservices (Maven)...${NC}"
+services=("mobility-service" "air-quality-service" "emergency-service" "emergency-gateway" "citizen-engagement-service" "api-gateway")
+
+for service in "${services[@]}"; do
+    echo -n "   - Building $service..."
+    if (cd "$service" && mvn clean package -DskipTests > /dev/null 2>&1); then
+        echo -e " ${GREEN}OK${NC}"
+    else
+        echo -e " ${RED}FAILED${NC}"
+        echo "Check $service/target/ for logs or run 'mvn clean package' manually."
+        exit 1
+    fi
+done
+
+# 3. Start Docker Stack
+echo -e "${GREEN}3. Starting Docker Stack...${NC}"
+echo "   - Stopping any existing containers..."
+docker-compose down > /dev/null 2>&1
+
+echo "   - Building and starting containers..."
+if docker-compose up -d --build; then
+    echo -e "   - Docker stack started ${GREEN}successfully${NC}."
+else
+    echo -e "${RED}Error: Failed to start Docker stack.${NC}"
+    exit 1
+fi
+
+# 4. Wait for Database
+echo -e "${GREEN}4. Waiting for Database...${NC}"
+echo -n "   - Waiting for MySQL to be healthy..."
+retries=30
+while [ $retries -gt 0 ]; do
+    if docker ps | grep mysql-container | grep "(healthy)" > /dev/null; then
+        echo -e " ${GREEN}OK${NC}"
+        break
+    fi
+    echo -n "."
+    sleep 2
+    ((retries--))
+done
+
+if [ $retries -eq 0 ]; then
+    echo -e " ${RED}TIMEOUT${NC}"
+    echo "MySQL did not become healthy in time."
+    exit 1
+fi
+
+# 5. Seed Database
+echo -e "${GREEN}5. Seeding Database...${NC}"
+if cat docker/seed_tunisia_data.sql | docker exec -i mysql-container mariadb -u root -proot; then
+    echo -e "   - Data seeded ${GREEN}successfully${NC}."
+else
+    echo -e "${RED}Error: Failed to seed database.${NC}"
+    # Don't exit, app might still work partially
+fi
+
+# 6. Final Summary
+echo -e "\n${BLUE}🎉 Application Ready!${NC}"
+echo -e "------------------------------------------------"
+echo -e "Frontend:       ${GREEN}http://localhost:3000${NC}"
+echo -e "API Gateway:    ${GREEN}http://localhost:8080${NC}"
+echo -e "AI Docs:        ${GREEN}http://localhost:8000/docs${NC}"
+echo -e "------------------------------------------------"
+echo "Use 'docker-compose down' to stop the application."

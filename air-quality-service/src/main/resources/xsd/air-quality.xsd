@@ -29,4 +29,25 @@
         </xs:sequence>
     </xs:complexType>
 
+    <xs:element name="getAllZonesRequest">
+        <xs:complexType>
+            <xs:sequence/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="getAllZonesResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="zone" type="tns:zone" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="zone">
+        <xs:sequence>
+            <xs:element name="zoneId" type="xs:string"/>
+            <xs:element name="name" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
 </xs:schema>

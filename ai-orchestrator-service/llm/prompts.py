@@ -3,8 +3,8 @@ Tu dois analyser les demandes des utilisateurs et générer un workflow JSON pou
 
 Services disponibles:
 1. **mobility** (REST, port 8080): Transport urbain, bus, métro, stations
-   - GET /api/transport/lines : Liste des lignes de transport
-   - GET /api/transport/nearby?lat=X&lon=Y : Stations proches
+   - GET /api/v1/transport/lines : Liste des lignes de transport
+   - GET /api/v1/transport/nearby?lat=X&lon=Y : Stations proches
    
 2. **air_quality** (SOAP, port 8081): Qualité de l'air, pollution
    - getAirQuality(city) : Retourne l'indice de qualité de l'air

@@ -10,9 +10,9 @@ class SOAPConnector:
     
     def __init__(self, base_url: str = AIR_QUALITY_SERVICE_URL):
         self.base_url = base_url
-        self.wsdl_url = f"{base_url}/ws/airquality.wsdl"
+        self.wsdl_url = f"{base_url}/ws/air-quality.wsdl"
         self.soap_url = f"{base_url}/ws"
-        self.namespace = "http://smartcity.com/airquality"
+        self.namespace = "http://smartcity.com/air-quality-service/schema"
     
     async def execute(self, operation: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Execute a SOAP operation.

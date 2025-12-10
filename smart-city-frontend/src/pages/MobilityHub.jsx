@@ -10,7 +10,7 @@ function MobilityHub() {
     const [formData, setFormData] = useState({
         name: '',
         type: 'BUS',
-        status: 'ON_TIME'
+        status: 'ACTIVE'
     });
 
     useEffect(() => {
@@ -21,9 +21,10 @@ function MobilityHub() {
         try {
             setLoading(true);
             const data = await mobilityService.getAllLines();
-            setLines(data);
+            setLines(data || []);
         } catch (error) {
-            console.log('Loading...');
+            console.error('Error fetching transport lines:', error);
+            setLines([]);
         } finally {
             setLoading(false);
         }
@@ -39,7 +40,7 @@ function MobilityHub() {
             }
             setShowForm(false);
             setEditingLine(null);
-            setFormData({ name: '', type: 'BUS', status: 'ON_TIME' });
+            setFormData({ name: '', type: 'BUS', status: 'ACTIVE' });
             fetchLines();
         } catch (error) {
             alert('Erreur lors de la sauvegarde');
@@ -65,11 +66,13 @@ function MobilityHub() {
 
     const getStatusBadge = (status) => {
         const badges = {
+            'ACTIVE': { class: 'badge-success', label: 'Actif' },
             'ON_TIME': { class: 'badge-success', label: 'À l\'heure' },
             'DELAYED': { class: 'badge-warning', label: 'Retard' },
-            'CANCELLED': { class: 'badge-danger', label: 'Annulé' }
+            'CANCELLED': { class: 'badge-danger', label: 'Annulé' },
+            'SUSPENDED': { class: 'badge-danger', label: 'Suspendu' }
         };
-        return badges[status] || badges['ON_TIME'];
+        return badges[status] || { class: 'badge-secondary', label: status || 'Inconnu' };
     };
 
     const getTypeConfig = (type) => {
@@ -107,7 +110,7 @@ function MobilityHub() {
                     <button
                         onClick={() => {
                             setEditingLine(null);
-                            setFormData({ name: '', type: 'BUS', status: 'ON_TIME' });
+                            setFormData({ name: '', type: 'BUS', status: 'ACTIVE' });
                             setShowForm(true);
                         }}
                         className="btn-primary"
@@ -162,9 +165,9 @@ function MobilityHub() {
                                         onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                                         className="input-field"
                                     >
-                                        <option value="ON_TIME">À l'heure</option>
+                                        <option value="ACTIVE">Actif</option>
                                         <option value="DELAYED">Retard</option>
-                                        <option value="CANCELLED">Annulé</option>
+                                        <option value="SUSPENDED">Suspendu</option>
                                     </select>
                                 </div>
                             </div>
@@ -185,9 +188,9 @@ function MobilityHub() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
                     { label: 'Total Lignes', value: lines.length, color: 'text-blue-400' },
-                    { label: 'À l\'heure', value: lines.filter(l => l.status === 'ON_TIME').length, color: 'text-emerald-400' },
+                    { label: 'Actives', value: lines.filter(l => l.status === 'ACTIVE' || l.status === 'ON_TIME').length, color: 'text-emerald-400' },
                     { label: 'En retard', value: lines.filter(l => l.status === 'DELAYED').length, color: 'text-amber-400' },
-                    { label: 'Annulées', value: lines.filter(l => l.status === 'CANCELLED').length, color: 'text-rose-400' }
+                    { label: 'Annulées', value: lines.filter(l => l.status === 'CANCELLED' || l.status === 'SUSPENDED').length, color: 'text-rose-400' }
                 ].map((stat, idx) => (
                     <div key={idx} className="stat-card">
                         <div className="text-2xl font-bold mb-1" style={{ color: stat.color.replace('text-', '').includes('blue') ? '#60a5fa' : stat.color.includes('emerald') ? '#34d399' : stat.color.includes('amber') ? '#fbbf24' : '#fb7185' }}>

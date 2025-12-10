@@ -1,0 +1,198 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mariadb:latest
+    container_name: mysql-container
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: smartcity_mobility
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data_final:/var/lib/mysql
+    networks:
+      - smart-city-net
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  mobility-service:
+    build: ./mobility-service
+    container_name: mobility-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-container:3306/smartcity_mobility?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - smart-city-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  air-quality-service:
+    build: ./air-quality-service
+    container_name: air-quality-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-container:3306/smartcity_airquality?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - smart-city-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8082/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  emergency-service:
+    build: ./emergency-service
+    container_name: emergency-service
+    ports:
+      - "8084:8084"
+      - "9093:9093"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-container:3306/smartcity_emergency?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - GRPC_SERVER_PORT=9093
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - smart-city-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8084/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  emergency-gateway:
+    build: ./emergency-gateway
+    container_name: emergency-gateway
+    ports:
+      - "8083:8083"
+    environment:
+      - GRPC_CLIENT_EMERGENCY_SERVICE_ADDRESS=static://emergency-service:9093
+      - GRPC_CLIENT_EMERGENCY_SERVICE_NEGOTIATION_TYPE=PLAINTEXT
+    depends_on:
+      emergency-service:
+        condition: service_healthy
+    networks:
+      - smart-city-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8083/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  citizen-engagement-service:
+    build: ./citizen-engagement-service
+    container_name: citizen-engagement-service
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-container:3306/smartcity_citizen?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - smart-city-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8085/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  ai-orchestrator-service:
+    build: ./ai-orchestrator-service
+    container_name: ai-orchestrator-service
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - HOST=0.0.0.0
+      - AIR_QUALITY_SERVICE_HOST=air-quality-service
+      - AIR_QUALITY_SERVICE_PORT=8082
+      - MOBILITY_SERVICE_HOST=mobility-service
+      - MOBILITY_SERVICE_PORT=8081
+    networks:
+      - smart-city-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - MOBILITY_URI=http://mobility-service:8081
+      - AIR_QUALITY_URI=http://air-quality-service:8082
+      - EMERGENCY_URI=http://emergency-gateway:8083
+      - CITIZEN_URI=http://citizen-engagement-service:8085
+      - ORCHESTRATOR_URI=http://ai-orchestrator-service:8000
+    depends_on:
+      mobility-service:
+        condition: service_healthy
+      air-quality-service:
+        condition: service_healthy
+      emergency-gateway:
+        condition: service_healthy
+      citizen-engagement-service:
+        condition: service_healthy
+      ai-orchestrator-service:
+        condition: service_healthy
+    networks:
+      - smart-city-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  frontend:
+    build: ./smart-city-frontend
+    container_name: smart-city-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    networks:
+      - smart-city-net
+
+volumes:
+  mysql_data_final:
+
+
+networks:
+  smart-city-net:
+    driver: bridge

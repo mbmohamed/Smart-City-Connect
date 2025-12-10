@@ -1,8 +1,25 @@
-import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
+import { ApolloClient, InMemoryCache, gql, HttpLink } from '@apollo/client';
+
+const httpLink = new HttpLink({
+  uri: '/graphql',
+  fetchOptions: {
+    mode: 'cors',
+  },
+});
 
 const client = new ApolloClient({
-    uri: 'http://localhost:8084/graphql',
-    cache: new InMemoryCache(),
+  link: httpLink,
+  cache: new InMemoryCache(),
+  defaultOptions: {
+    watchQuery: {
+      fetchPolicy: 'network-only',
+      errorPolicy: 'all',
+    },
+    query: {
+      fetchPolicy: 'network-only',
+      errorPolicy: 'all',
+    },
+  },
 });
 
 export const GET_ALL_EVENTS = gql`

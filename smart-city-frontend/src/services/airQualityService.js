@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const SOAP_ENDPOINT = 'http://localhost:8081/ws';
+const SOAP_ENDPOINT = '/ws';
 
 const airQualityService = {
     // Get air quality for a zone (SOAP request)
@@ -38,10 +38,10 @@ const airQualityService = {
             return {
                 zoneId: getData('zoneId'),
                 aqi: parseInt(getData('aqi')),
-                quality: getData('quality'),
+                quality: getData('status'),
                 pm25: parseFloat(getData('pm25')),
                 pm10: parseFloat(getData('pm10')),
-                co2: parseFloat(getData('co2')),
+                co2: parseFloat(getData('no2')), // Backend returns no2, mapping to co2 for frontend compatibility
                 timestamp: getData('timestamp')
             };
         } catch (error) {

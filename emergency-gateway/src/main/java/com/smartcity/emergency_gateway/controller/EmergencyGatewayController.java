@@ -59,19 +59,24 @@ public class EmergencyGatewayController {
     @GetMapping("/alerts")
     public ResponseEntity<List<AlertDTO>> getActiveAlerts() {
         try {
-            // Note: In real implementation, you'd need to implement a proper way to fetch
-            // all alerts
-            // For now, using a workaround by streaming with no filters
             List<AlertDTO> alerts = new ArrayList<>();
-
             StreamAlertsRequest request = StreamAlertsRequest.newBuilder().build();
 
-            // Collect first 50 alerts from stream
-            emergencyStub.streamAlerts(request).forEachRemaining(response -> {
-                if (alerts.size() < 50) {
-                    alerts.add(mapToAlertDTO(response));
+            // Use deadline to prevent indefinite blocking on the stream
+            var iterator = emergencyStub.withDeadlineAfter(3, java.util.concurrent.TimeUnit.SECONDS)
+                    .streamAlerts(request);
+
+            // Collect alerts until deadline or max 50 reached
+            try {
+                while (iterator.hasNext() && alerts.size() < 50) {
+                    alerts.add(mapToAlertDTO(iterator.next()));
                 }
-            });
+            } catch (io.grpc.StatusRuntimeException e) {
+                // DEADLINE_EXCEEDED is expected - we got what we could in 3 seconds
+                if (e.getStatus().getCode() != io.grpc.Status.Code.DEADLINE_EXCEEDED) {
+                    throw e;
+                }
+            }
 
             return ResponseEntity.ok(alerts);
         } catch (Exception e) {

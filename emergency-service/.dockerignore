@@ -1,0 +1,38 @@
+# Dependencies
+target/
+!target/*.jar
+*.jar
+!*-SNAPSHOT.jar
+
+# Build files
+.mvn/
+mvnw
+mvnw.cmd
+pom.xml.versionsBackup
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Test
+src/test/
+
+# Documentation
+*.md
+docs/

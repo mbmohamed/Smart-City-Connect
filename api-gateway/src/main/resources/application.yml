@@ -1,0 +1,50 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "http://localhost:5173"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+      routes:
+        - id: mobility-service
+          uri: ${MOBILITY_URI:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/transport/**
+        - id: air-quality-service
+          uri: ${AIR_QUALITY_URI:http://localhost:8082}
+          predicates:
+            - Path=/ws/**
+        - id: emergency-service
+          uri: ${EMERGENCY_URI:http://localhost:8083}
+          predicates:
+            - Path=/api/emergency/**
+        - id: citizen-engagement-service
+          uri: ${CITIZEN_URI:http://localhost:8085}
+          predicates:
+            - Path=/graphql/**
+        - id: ai-orchestrator-service
+          uri: ${ORCHESTRATOR_URI:http://localhost:8000}
+          predicates:
+            - Path=/chat/**, /trip-plan/**, /health/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

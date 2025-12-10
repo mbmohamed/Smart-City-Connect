@@ -1,14 +1,4 @@
-nohup: ignoring input
-INFO:     Started server process [253206]
+INFO:     Started server process [70362]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-ERROR:    [Errno 98] error while attempting to bind on address ('0.0.0.0⚠️ gRPC stubs not available. Run 'python -m grpc_tools.protoc ...' to generate them.
-⚠️ GEMINI_API_KEY not set. Using mock responses.
-INFO:     127.0.0.1:56206 - "GET / HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58492 - "GET / HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54386 - "GET /services HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54390 - "POST /chat HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55186 - "POST /chat HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55190 - "POST /chat HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53014 - "OPTIONS /chat HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53014 - "POST /chat HTTP/1.1" 200 OK
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)

@@ -7,7 +7,7 @@ BLUE='\033[0;34m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}🚀 Starting Smart City Connect (Docker Edition - Robust Mode)...${NC}"
+echo -e "${BLUE}🚀 Starting Smart City Connect (H2 Edition)...${NC}"
 
 # 1. Check Prerequisites
 echo -e "${GREEN}1. Checking Prerequisites...${NC}"
@@ -23,22 +23,8 @@ fi
 # Create network
 docker network create smart-city-net || true
 
-# 2. Start Database
-echo -e "${GREEN}2. Starting Database...${NC}"
-docker rm -f mysql-container || true
-docker run -d --name mysql-container \
-  --network smart-city-net \
-  -p 3307:3306 \
-  -e MYSQL_ROOT_PASSWORD=root \
-  -e MYSQL_DATABASE=smartcity_mobility \
-  mariadb:latest
-
-echo -n "   - Waiting for MySQL..."
-sleep 10
-echo -e " ${GREEN}OK${NC}"
-
-# 3. Build and Start Services
-echo -e "${GREEN}3. Building and Starting Services...${NC}"
+# 2. Build and Start Services
+echo -e "${GREEN}2. Building and Starting Services...${NC}"
 
 # Function to build and start a service
 build_and_run() {
@@ -61,34 +47,58 @@ build_and_run() {
     # Docker Run (Custom logic per service)
     docker rm -f $service || true
     
+    # Common H2 Env Vars
+    H2_URL="jdbc:h2:file:/data/db;DB_CLOSE_ON_EXIT=FALSE"
+    H2_DRIVER="org.h2.Driver"
+    H2_USER="sa"
+    H2_PASS=""
+
+    # Determine if port should be exposed (only for gateway)
+    PORT_MAPPING=""
+    if [ "$service" == "api-gateway" ]; then
+        PORT_MAPPING="-p $port:$port"
+    fi
+
     if [ "$service" == "mobility-service" ]; then
-        docker run -d --name $service --network smart-city-net -p $port:$port \
-          -e SPRING_DATASOURCE_URL="jdbc:mysql://mysql-container:3306/smartcity_mobility?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false" \
-          -e SPRING_DATASOURCE_USERNAME=root -e SPRING_DATASOURCE_PASSWORD=root \
+        docker run -d --name $service --network smart-city-net $PORT_MAPPING \
+          -v $(pwd)/../data/mobility:/data \
+          -e SPRING_DATASOURCE_URL="$H2_URL" \
+          -e SPRING_DATASOURCE_DRIVER_CLASS_NAME="$H2_DRIVER" \
+          -e SPRING_DATASOURCE_USERNAME="$H2_USER" \
+          -e SPRING_DATASOURCE_PASSWORD="$H2_PASS" \
           $service:latest > /dev/null
     elif [ "$service" == "air-quality-service" ]; then
-        docker run -d --name $service --network smart-city-net -p $port:$port \
-          -e SPRING_DATASOURCE_URL="jdbc:mysql://mysql-container:3306/smartcity_airquality?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false" \
-          -e SPRING_DATASOURCE_USERNAME=root -e SPRING_DATASOURCE_PASSWORD=root \
+        docker run -d --name $service --network smart-city-net $PORT_MAPPING \
+          -v $(pwd)/../data/air-quality:/data \
+          -e SPRING_DATASOURCE_URL="$H2_URL" \
+          -e SPRING_DATASOURCE_DRIVER_CLASS_NAME="$H2_DRIVER" \
+          -e SPRING_DATASOURCE_USERNAME="$H2_USER" \
+          -e SPRING_DATASOURCE_PASSWORD="$H2_PASS" \
           $service:latest > /dev/null
     elif [ "$service" == "emergency-service" ]; then
-        docker run -d --name $service --network smart-city-net -p $port:$port -p 9093:9093 \
-          -e SPRING_DATASOURCE_URL="jdbc:mysql://mysql-container:3306/smartcity_emergency?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false" \
-          -e SPRING_DATASOURCE_USERNAME=root -e SPRING_DATASOURCE_PASSWORD=root \
+        docker run -d --name $service --network smart-city-net $PORT_MAPPING \
+          -v $(pwd)/../data/emergency:/data \
+          -e SPRING_DATASOURCE_URL="$H2_URL" \
+          -e SPRING_DATASOURCE_DRIVER_CLASS_NAME="$H2_DRIVER" \
+          -e SPRING_DATASOURCE_USERNAME="$H2_USER" \
+          -e SPRING_DATASOURCE_PASSWORD="$H2_PASS" \
           -e GRPC_SERVER_PORT=9093 \
           $service:latest > /dev/null
     elif [ "$service" == "emergency-gateway" ]; then
-        docker run -d --name $service --network smart-city-net -p $port:$port \
+        docker run -d --name $service --network smart-city-net $PORT_MAPPING \
           -e GRPC_CLIENT_EMERGENCY_SERVICE_ADDRESS=static://emergency-service:9093 \
           -e GRPC_CLIENT_EMERGENCY_SERVICE_NEGOTIATION_TYPE=PLAINTEXT \
           $service:latest > /dev/null
     elif [ "$service" == "citizen-engagement-service" ]; then
-        docker run -d --name $service --network smart-city-net -p $port:$port \
-          -e SPRING_DATASOURCE_URL="jdbc:mysql://mysql-container:3306/smartcity_citizen?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false" \
-          -e SPRING_DATASOURCE_USERNAME=root -e SPRING_DATASOURCE_PASSWORD=root \
+        docker run -d --name $service --network smart-city-net $PORT_MAPPING \
+          -v $(pwd)/../data/citizen:/data \
+          -e SPRING_DATASOURCE_URL="$H2_URL" \
+          -e SPRING_DATASOURCE_DRIVER_CLASS_NAME="$H2_DRIVER" \
+          -e SPRING_DATASOURCE_USERNAME="$H2_USER" \
+          -e SPRING_DATASOURCE_PASSWORD="$H2_PASS" \
           $service:latest > /dev/null
     elif [ "$service" == "api-gateway" ]; then
-         docker run -d --name $service --network smart-city-net -p $port:$port \
+         docker run -d --name $service --network smart-city-net $PORT_MAPPING \
           -e MOBILITY_URI=http://mobility-service:8081 \
           -e AIR_QUALITY_URI=http://air-quality-service:8082 \
           -e EMERGENCY_URI=http://emergency-gateway:8083 \
@@ -113,7 +123,7 @@ echo -e "   - Processing ${BLUE}ai-orchestrator-service${NC}..."
 cd ai-orchestrator-service
 docker build -t ai-orchestrator-service:latest . > /dev/null
 docker rm -f ai-orchestrator-service || true
-docker run -d --name ai-orchestrator-service --network smart-city-net -p 8000:8000 \
+docker run -d --name ai-orchestrator-service --network smart-city-net \
   -e PORT=8000 -e HOST=0.0.0.0 \
   -e AIR_QUALITY_SERVICE_HOST=air-quality-service -e AIR_QUALITY_SERVICE_PORT=8082 \
   -e MOBILITY_SERVICE_HOST=mobility-service -e MOBILITY_SERVICE_PORT=8081 \
@@ -131,37 +141,7 @@ docker run -d --name smart-city-frontend --network smart-city-net -p 3000:80 \
 cd ..
 echo -e "     Start: ${GREEN}OK${NC}"
 
-# 4. Seed Database
-echo -e "${GREEN}4. Seeding Database...${NC}"
-# Wait for tables to be initialized
-echo -n "   - Waiting for tables to be initialized..."
-retries=60
-while [ $retries -gt 0 ]; do
-    if docker exec -i mysql-container mariadb -u root -proot -e "USE smartcity_mobility; SHOW TABLES LIKE 'transport_line';" 2>/dev/null | grep "transport_line" > /dev/null; then
-        echo -e " ${GREEN}OK${NC}"
-        break
-    fi
-    echo -n "."
-    sleep 2
-    ((retries--))
-done
-
-if [ $retries -eq 0 ]; then
-    echo -e " ${RED}TIMEOUT${NC}"
-    echo "Tables were not created in time. Seeding might fail."
-fi
-
-if [ -f "docker/seed_tunisia_data.sql" ]; then
-    if cat docker/seed_tunisia_data.sql | docker exec -i mysql-container mariadb -u root -proot; then
-        echo -e "   - Data seeded ${GREEN}successfully${NC}."
-    else
-        echo -e "${RED}Error: Failed to seed database (Check if file exists or DB is ready).${NC}"
-    fi
-else
-     echo -e "${RED}Warning: Seed file docker/seed_tunisia_data.sql not found.${NC}"
-fi
-
-# 5. Final Summary
+# 3. Final Summary
 echo -e "\n${BLUE}🎉 Application Ready!${NC}"
 echo -e "------------------------------------------------"
 echo -e "Frontend:       ${GREEN}http://localhost:3000${NC}"

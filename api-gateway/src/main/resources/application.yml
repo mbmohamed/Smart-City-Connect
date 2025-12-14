@@ -29,7 +29,7 @@ spring:
         - id: air-quality-service
           uri: ${AIR_QUALITY_URI:http://localhost:8082}
           predicates:
-            - Path=/ws/**
+            - Path=/ws/**, /api/admin/air-quality/**
         - id: emergency-service
           uri: ${EMERGENCY_URI:http://localhost:8083}
           predicates:

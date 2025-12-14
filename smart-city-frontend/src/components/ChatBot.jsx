@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, Send, X, Bot, User, Loader2, Minimize2, Maximize2, Sparkles } from 'lucide-react';
 
-const ORCHESTRATOR_URL = 'http://localhost:8085';
+const ORCHESTRATOR_URL = '';
 
 const ChatBot = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -136,8 +136,8 @@ const ChatBot = () => {
                                     </div>
                                 )}
                                 <div className={`max-w-[80%] p-3.5 rounded-2xl ${msg.role === 'user'
-                                        ? 'bg-gradient-to-br from-primary to-primary-dark text-white rounded-br-md'
-                                        : 'bg-white/5 border border-white/10 text-text-primary rounded-bl-md'
+                                    ? 'bg-gradient-to-br from-primary to-primary-dark text-white rounded-br-md'
+                                    : 'bg-white/5 border border-white/10 text-text-primary rounded-bl-md'
                                     }`}>
                                     <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.content}</p>
                                     {msg.workflow && (

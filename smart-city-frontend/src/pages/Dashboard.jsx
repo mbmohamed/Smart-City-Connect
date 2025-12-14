@@ -14,11 +14,57 @@ function Dashboard() {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const mobilityRes = await fetch('http://localhost:8080/api/v1/transport/lines');
+                // Mobility
+                const mobilityRes = await fetch('/api/v1/transport/lines');
                 const mobilityData = await mobilityRes.json();
-                setStats(prev => ({ ...prev, totalLines: mobilityData.length }));
+
+                // Emergency
+                const emergencyRes = await fetch('/api/emergency/alerts');
+                const emergencyData = await emergencyRes.json();
+
+                // Citizen (GraphQL)
+                const citizenQuery = {
+                    query: `query { getAllEvents { id } }`
+                };
+                const citizenRes = await fetch('/graphql', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(citizenQuery)
+                });
+                const citizenData = await citizenRes.json();
+
+                // Air Quality (SOAP via Gateway - simplified for stats, assuming we can get zones or use default)
+                // For dashboard summary, we might just show "Active" or fetch one zone. 
+                // Let's try to fetch all zones to count them or just keep it static "Bon" if too complex for now, 
+                // but user asked to fix it. Let's try to fetch a specific zone 'ZONE_001' to get AQI.
+                const soapEnvelope = `
+                    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:gs="http://smartcity.com/air-quality-service/schema">
+                        <soapenv:Header/>
+                        <soapenv:Body>
+                            <gs:getAirQualityRequest>
+                                <gs:zoneId>ZONE_001</gs:zoneId>
+                            </gs:getAirQualityRequest>
+                        </soapenv:Body>
+                    </soapenv:Envelope>
+                `;
+                const aqRes = await fetch('/ws', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/xml' },
+                    body: soapEnvelope
+                });
+                const aqText = await aqRes.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(aqText, "text/xml");
+                const aqi = xmlDoc.getElementsByTagNameNS("*", "aqi")[0]?.textContent || 0;
+
+                setStats({
+                    totalLines: mobilityData.length || 0,
+                    activeAlerts: emergencyData.length || 0,
+                    totalEvents: citizenData.data?.getAllEvents?.length || 0,
+                    averageAQI: aqi
+                });
             } catch (error) {
-                console.log('Services loading...');
+                console.log('Error loading stats:', error);
             } finally {
                 setIsLoading(false);
             }
@@ -207,7 +253,7 @@ function Dashboard() {
                             <Wind className="w-5 h-5" />
                             <span className="text-sm font-medium text-text-secondary">Air Quality</span>
                         </div>
-                        <div className="text-3xl font-bold mb-1">Bon</div>
+                        <div className="text-3xl font-bold mb-1">{stats.averageAQI > 0 ? stats.averageAQI : 'N/A'}</div>
                         <div className="text-xs text-text-muted">Indice moyen</div>
                         <div className="mt-4 progress-bar">
                             <div className="progress-bar-fill bg-gradient-to-r from-emerald-500 to-teal-500" style={{ width: '85%' }} />

@@ -49,12 +49,22 @@ function EmergencyCenter() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await emergencyService.createAlert(formData);
+            const payload = {
+                type: formData.type,
+                location: formData.location,
+                severity: formData.severity,
+                description: formData.description,
+                coordinates: {
+                    latitude: formData.latitude,
+                    longitude: formData.longitude
+                }
+            };
+            await emergencyService.createAlert(payload);
             setShowForm(false);
             setFormData({ type: 'MEDICAL_EMERGENCY', location: '', severity: 'HIGH', description: '', latitude: 36.8065, longitude: 10.1815 });
             fetchData();
         } catch (error) {
-            alert('Erreur');
+            alert('Erreur: ' + (error.response?.data?.message || error.message));
         }
     };
 

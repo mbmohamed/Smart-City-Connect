@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const API_BASE_URL = '/api/emergency';
+const GATEWAY_URL = '/api/emergency';
 
 const emergencyService = {
     // Get all active alerts
@@ -40,7 +41,7 @@ const emergencyService = {
     // Get health status
     async getHealth() {
         try {
-            const response = await axios.get('http://localhost:8083/actuator/health');
+            const response = await axios.get('/api/emergency/actuator/health');
             return response.data;
         } catch (error) {
             console.error('Error checking health:', error);

@@ -134,6 +134,83 @@ public class EmergencyGrpcServiceImpl extends EmergencyServiceGrpc.EmergencyServ
     }
 
     @Override
+    public StreamObserver<CreateAlertRequest> bulkCreateAlerts(StreamObserver<BulkAlertResponse> responseObserver) {
+        return new StreamObserver<CreateAlertRequest>() {
+            int successCount = 0;
+
+            @Override
+            public void onNext(CreateAlertRequest request) {
+                try {
+                    Alert alert = new Alert();
+                    alert.setType(mapAlertType(request.getType()));
+                    alert.setLocation(request.getLocation());
+                    alert.setSeverity(mapSeverity(request.getSeverity()));
+                    alert.setDescription(request.getDescription());
+                    alert.setReportedBy(request.getReportedBy());
+
+                    if (request.hasCoordinates()) {
+                        alert.setLatitude(request.getCoordinates().getLatitude());
+                        alert.setLongitude(request.getCoordinates().getLongitude());
+                    }
+
+                    alertService.createAlert(alert);
+                    successCount++;
+                } catch (Exception e) {
+                    // Log error but continue stream
+                    System.err.println("Error creating alert in bulk: " + e.getMessage());
+                }
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                System.err.println("Bulk stream error: " + t.getMessage());
+            }
+
+            @Override
+            public void onCompleted() {
+                BulkAlertResponse response = BulkAlertResponse.newBuilder()
+                        .setCount(successCount)
+                        .setStatus("PROCESSED")
+                        .build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+            }
+        };
+    }
+
+    @Override
+    public StreamObserver<UnitUpdate> coordinateUnit(StreamObserver<Command> responseObserver) {
+        return new StreamObserver<UnitUpdate>() {
+            @Override
+            public void onNext(UnitUpdate update) {
+                // Process unit update (e.g., update live map)
+                System.out.println("Received update from Unit " + update.getUnitId() +
+                        " at " + update.getLocation().getLatitude() + "," + update.getLocation().getLongitude());
+
+                // Send command back (e.g., "Stay put" or "Move to X")
+                // For demo, we just echo an ACK command
+                Command command = Command.newBuilder()
+                        .setCommandId("CMD-" + System.currentTimeMillis())
+                        .setInstruction("ACK_UPDATE")
+                        .setTargetLocation(update.getLocation()) // Stay where you are
+                        .build();
+
+                responseObserver.onNext(command);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                System.err.println("Coordination stream error: " + t.getMessage());
+            }
+
+            @Override
+            public void onCompleted() {
+                responseObserver.onCompleted();
+            }
+        };
+    }
+
+    @Override
     public void getAvailableResources(ResourceRequest request, StreamObserver<ResourceResponse> responseObserver) {
         try {
             List<EmergencyResource> resources;
@@ -177,6 +254,25 @@ public class EmergencyGrpcServiceImpl extends EmergencyServiceGrpc.EmergencyServ
         } catch (Exception e) {
             responseObserver.onError(io.grpc.Status.INTERNAL
                     .withDescription("Failed to get resources: " + e.getMessage())
+                    .asRuntimeException());
+        }
+    }
+
+    @Override
+    public void getAllAlerts(Empty request, StreamObserver<AlertListResponse> responseObserver) {
+        try {
+            List<Alert> alerts = alertService.getAllAlerts();
+
+            AlertListResponse.Builder responseBuilder = AlertListResponse.newBuilder();
+            for (Alert alert : alerts) {
+                responseBuilder.addAlerts(mapToAlertResponse(alert));
+            }
+
+            responseObserver.onNext(responseBuilder.build());
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            responseObserver.onError(io.grpc.Status.INTERNAL
+                    .withDescription("Failed to get all alerts: " + e.getMessage())
                     .asRuntimeException());
         }
     }

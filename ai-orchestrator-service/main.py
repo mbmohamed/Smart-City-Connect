@@ -7,6 +7,7 @@ import uvicorn
 from config import HOST, PORT
 from llm.gemini_client import GeminiOrchestrator
 from workflow.executor import WorkflowExecutor
+from connectors.emergency_connector import EmergencyConnector
 
 app = FastAPI(
     title="AI Orchestrator - Smart City Connect",
@@ -26,6 +27,7 @@ app.add_middleware(
 # Initialize components
 orchestrator = GeminiOrchestrator()
 executor = WorkflowExecutor()
+emergency_connector = EmergencyConnector()
 
 
 class ChatRequest(BaseModel):
@@ -207,6 +209,69 @@ async def plan_trip(request: TripPlanRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+class EmergencyAlertRequest(BaseModel):
+    type: str = "MEDICAL_EMERGENCY"
+    location: str
+    severity: str = "HIGH"
+    description: str
+    reported_by: str
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+
+@app.post("/emergency/alert")
+async def create_emergency_alert(request: EmergencyAlertRequest):
+    """
+    Create an emergency alert via gRPC
+    """
+    result = emergency_connector.create_alert(
+        type_str=request.type,
+        location=request.location,
+        severity_str=request.severity,
+        description=request.description,
+        reported_by=request.reported_by,
+        lat=request.latitude,
+        lon=request.longitude
+    )
+    
+    if "error" in result:
+        raise HTTPException(status_code=500, detail=result["error"])
+        
+    return result
+
+@app.get("/emergency/alerts")
+async def get_all_alerts():
+    """
+    Get all emergency alerts via gRPC
+    """
+    return emergency_connector.get_all_alerts()
+
+@app.get("/emergency/alerts/{alert_id}")
+async def get_alert(alert_id: str):
+    """
+    Get alert status by ID via gRPC
+    """
+    result = emergency_connector.get_alert_status(alert_id)
+    if "error" in result:
+        raise HTTPException(status_code=404, detail="Alert not found")
+    return result
+
+@app.get("/emergency/resources")
+async def get_resources():
+    """
+    Get emergency resources - stub for now
+    """
+    # TODO: Implement via gRPC GetAvailableResources
+    return []
+
+@app.get("/emergency/actuator/health")
+async def emergency_health():
+    """
+    Health check endpoint for emergency service compatibility
+    """
+    return {"status": "UP"}
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host=HOST, port=PORT)

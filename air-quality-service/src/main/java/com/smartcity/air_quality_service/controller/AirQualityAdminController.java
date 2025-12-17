@@ -8,8 +8,12 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/admin/air-quality")
+@Tag(name = "Air Quality Admin", description = "Administrative operations for Air Quality data")
 public class AirQualityAdminController {
 
     private final AirQualityRepository repository;
@@ -18,6 +22,7 @@ public class AirQualityAdminController {
         this.repository = repository;
     }
 
+    @Operation(summary = "Seed Air Quality Data", description = "Bulk insert air quality records.")
     @PostMapping("/seed")
     public ResponseEntity<String> seedData(@RequestBody List<AirQualityEntity> entities) {
         for (AirQualityEntity entity : entities) {

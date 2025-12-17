@@ -54,10 +54,9 @@ function EmergencyCenter() {
                 location: formData.location,
                 severity: formData.severity,
                 description: formData.description,
-                coordinates: {
-                    latitude: formData.latitude,
-                    longitude: formData.longitude
-                }
+                reported_by: "Web User",
+                latitude: formData.latitude,
+                longitude: formData.longitude
             };
             await emergencyService.createAlert(payload);
             setShowForm(false);

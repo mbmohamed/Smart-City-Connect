@@ -114,7 +114,6 @@ build_and_run() {
 build_and_run "mobility-service" 8081
 build_and_run "air-quality-service" 8082
 build_and_run "emergency-service" 8084
-build_and_run "emergency-gateway" 8083
 build_and_run "citizen-engagement-service" 8085
 build_and_run "api-gateway" 8080
 

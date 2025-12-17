@@ -48,7 +48,6 @@ services:
     build: ./emergency-service
     container_name: emergency-service
     ports:
-      - "8084"
       - "9093"
     volumes:
       - ./data/emergency:/data
@@ -60,32 +59,6 @@ services:
       - GRPC_SERVER_PORT=9093
     networks:
       - smart-city-net
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8084/actuator/health" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  emergency-gateway:
-    build: ./emergency-gateway
-    container_name: emergency-gateway
-    ports:
-      - "8083"
-    environment:
-      - GRPC_CLIENT_EMERGENCY_SERVICE_ADDRESS=static://emergency-service:9093
-      - GRPC_CLIENT_EMERGENCY_SERVICE_NEGOTIATION_TYPE=PLAINTEXT
-    depends_on:
-      emergency-service:
-        condition: service_healthy
-    networks:
-      - smart-city-net
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8083/actuator/health" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
 
   citizen-engagement-service:
     build: ./citizen-engagement-service
@@ -137,15 +110,13 @@ services:
     environment:
       - MOBILITY_URI=http://mobility-service:8081
       - AIR_QUALITY_URI=http://air-quality-service:8082
-      - EMERGENCY_URI=http://emergency-gateway:8083
+      - EMERGENCY_URI=http://emergency-service:8084
       - CITIZEN_URI=http://citizen-engagement-service:8085
       - ORCHESTRATOR_URI=http://ai-orchestrator-service:8000
     depends_on:
       mobility-service:
         condition: service_healthy
       air-quality-service:
-        condition: service_healthy
-      emergency-gateway:
         condition: service_healthy
       citizen-engagement-service:
         condition: service_healthy

@@ -18,7 +18,7 @@ const emergencyService = {
     // Create new alert
     async createAlert(alertData) {
         try {
-            const response = await axios.post(`${GATEWAY_URL}/alerts`, alertData);
+            const response = await axios.post(`${GATEWAY_URL}/alert`, alertData);
             return response.data;
         } catch (error) {
             console.error('Error creating alert:', error);

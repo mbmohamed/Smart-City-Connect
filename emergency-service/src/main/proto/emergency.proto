@@ -21,6 +21,21 @@ service EmergencyService {
   
   // Obtenir les ressources disponibles (ambulances, pompiers)
   rpc GetAvailableResources (ResourceRequest) returns (ResourceResponse);
+
+  // Client Streaming: Création d'alertes en masse
+  rpc BulkCreateAlerts (stream CreateAlertRequest) returns (BulkAlertResponse);
+
+  // Bidirectional Streaming: Coordination d'unité en temps réel
+  rpc CoordinateUnit (stream UnitUpdate) returns (stream Command);
+
+  // Obtenir toutes les alertes (pour le dashboard)
+  rpc GetAllAlerts (Empty) returns (AlertListResponse);
+}
+
+message Empty {}
+
+message AlertListResponse {
+  repeated AlertResponse alerts = 1;
 }
 
 message CreateAlertRequest {
@@ -121,4 +136,21 @@ enum ResourceStatus {
   AVAILABLE = 1;
   BUSY = 2;
   OFFLINE = 3;
+}
+
+message BulkAlertResponse {
+  int32 count = 1;
+  string status = 2;
+}
+
+message UnitUpdate {
+  string unitId = 1;
+  Coordinates location = 2;
+  ResourceStatus status = 3;
+}
+
+message Command {
+  string commandId = 1;
+  string instruction = 2;
+  Coordinates targetLocation = 3;
 }

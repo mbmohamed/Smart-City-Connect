@@ -7,5 +7,5 @@ zeep==4.3.1
 gql[httpx]==3.5.0
 grpcio==1.68.0
 grpcio-tools==1.68.0
-protobuf==5.28.0
+protobuf>=5.28.1
 python-dotenv==1.0.0

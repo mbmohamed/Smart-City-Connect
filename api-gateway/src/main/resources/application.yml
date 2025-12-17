@@ -30,18 +30,64 @@ spring:
           uri: ${AIR_QUALITY_URI:http://localhost:8082}
           predicates:
             - Path=/ws/**, /api/admin/air-quality/**
-        - id: emergency-service
-          uri: ${EMERGENCY_URI:http://localhost:8083}
+        # Emergency service is gRPC-only, route through Orchestrator
+        - id: emergency-service-via-orchestrator
+          uri: ${ORCHESTRATOR_URI:http://localhost:8000}
           predicates:
             - Path=/api/emergency/**
+          filters:
+            - RewritePath=/api/emergency/(?<segment>.*), /emergency/$\{segment}
         - id: citizen-engagement-service
           uri: ${CITIZEN_URI:http://localhost:8085}
           predicates:
-            - Path=/graphql/**
+            - Path=/graphql/**, /graphiql/**, /api/citizen/**
         - id: ai-orchestrator-service
           uri: ${ORCHESTRATOR_URI:http://localhost:8000}
           predicates:
-            - Path=/chat/**, /trip-plan/**, /health/**
+            - Path=/chat/**, /trip-plan/**, /health/**, /docs, /openapi.json
+
+        # Documentation Routes
+        - id: mobility-docs
+          uri: ${MOBILITY_URI:http://localhost:8081}
+          predicates:
+            - Path=/v3/api-docs/mobility
+          filters:
+            - RewritePath=/v3/api-docs/mobility, /v3/api-docs
+
+        - id: air-quality-docs
+          uri: ${AIR_QUALITY_URI:http://localhost:8082}
+          predicates:
+            - Path=/v3/api-docs/air-quality
+          filters:
+            - RewritePath=/v3/api-docs/air-quality, /v3/api-docs
+
+        - id: emergency-docs
+          uri: ${EMERGENCY_URI:http://localhost:8083}
+          predicates:
+            - Path=/v3/api-docs/emergency
+          filters:
+            - RewritePath=/v3/api-docs/emergency, /v3/api-docs
+
+        - id: citizen-docs
+          uri: ${CITIZEN_URI:http://localhost:8085}
+          predicates:
+            - Path=/v3/api-docs/citizen
+          filters:
+            - RewritePath=/v3/api-docs/citizen, /v3/api-docs
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: Mobility Service
+        url: /v3/api-docs/mobility
+      - name: Air Quality Service
+        url: /v3/api-docs/air-quality
+      - name: Emergency Service
+        url: /v3/api-docs/emergency
+      - name: Citizen Engagement
+        url: /v3/api-docs/citizen
+      - name: AI Orchestrator
+        url: /openapi.json
 
 management:
   endpoints:

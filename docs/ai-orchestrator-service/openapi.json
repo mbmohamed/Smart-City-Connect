@@ -1,0 +1,487 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "AI Orchestrator - Smart City Connect",
+        "description": "Service d'orchestration intelligent bas\u00e9 sur LLM pour les microservices Smart City",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/": {
+            "get": {
+                "summary": "Root",
+                "operationId": "root__get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "summary": "Health",
+                "operationId": "health_health_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/services": {
+            "get": {
+                "summary": "List Services",
+                "operationId": "list_services_services_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/ServiceInfo"
+                                    },
+                                    "type": "array",
+                                    "title": "Response List Services Services Get"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/chat": {
+            "post": {
+                "summary": "Chat",
+                "operationId": "chat_chat_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ChatRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ChatResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/trip-plan": {
+            "post": {
+                "summary": "Plan Trip",
+                "operationId": "plan_trip_trip_plan_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TripPlanRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/emergency/alert": {
+            "post": {
+                "summary": "Create Emergency Alert",
+                "description": "Create an emergency alert via gRPC",
+                "operationId": "create_emergency_alert_emergency_alert_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmergencyAlertRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/emergency/alerts": {
+            "get": {
+                "summary": "Get All Alerts",
+                "description": "Get all emergency alerts via gRPC",
+                "operationId": "get_all_alerts_emergency_alerts_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/emergency/alerts/{alert_id}": {
+            "get": {
+                "summary": "Get Alert",
+                "description": "Get alert status by ID via gRPC",
+                "operationId": "get_alert_emergency_alerts__alert_id__get",
+                "parameters": [
+                    {
+                        "name": "alert_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Alert Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/emergency/resources": {
+            "get": {
+                "summary": "Get Resources",
+                "description": "Get emergency resources - stub for now",
+                "operationId": "get_resources_emergency_resources_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/emergency/actuator/health": {
+            "get": {
+                "summary": "Emergency Health",
+                "description": "Health check endpoint for emergency service compatibility",
+                "operationId": "emergency_health_emergency_actuator_health_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ChatRequest": {
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "context": {
+                        "anyOf": [
+                            {
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Context"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "message"
+                ],
+                "title": "ChatRequest"
+            },
+            "ChatResponse": {
+                "properties": {
+                    "response": {
+                        "type": "string",
+                        "title": "Response"
+                    },
+                    "workflow": {
+                        "anyOf": [
+                            {
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Workflow"
+                    },
+                    "results": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Results"
+                    },
+                    "success": {
+                        "type": "boolean",
+                        "title": "Success"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "response",
+                    "success"
+                ],
+                "title": "ChatResponse"
+            },
+            "EmergencyAlertRequest": {
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "title": "Type",
+                        "default": "MEDICAL_EMERGENCY"
+                    },
+                    "location": {
+                        "type": "string",
+                        "title": "Location"
+                    },
+                    "severity": {
+                        "type": "string",
+                        "title": "Severity",
+                        "default": "HIGH"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "Description"
+                    },
+                    "reported_by": {
+                        "type": "string",
+                        "title": "Reported By"
+                    },
+                    "latitude": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Latitude"
+                    },
+                    "longitude": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Longitude"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "location",
+                    "description",
+                    "reported_by"
+                ],
+                "title": "EmergencyAlertRequest"
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "ServiceInfo": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "protocol": {
+                        "type": "string",
+                        "title": "Protocol"
+                    },
+                    "port": {
+                        "type": "integer",
+                        "title": "Port"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "Description"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "protocol",
+                    "port",
+                    "description"
+                ],
+                "title": "ServiceInfo"
+            },
+            "TripPlanRequest": {
+                "properties": {
+                    "origin": {
+                        "type": "string",
+                        "title": "Origin"
+                    },
+                    "destination": {
+                        "type": "string",
+                        "title": "Destination"
+                    },
+                    "zone_id": {
+                        "type": "string",
+                        "title": "Zone Id"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "origin",
+                    "destination",
+                    "zone_id"
+                ],
+                "title": "TripPlanRequest"
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            }
+        }
+    }
+}

@@ -1,0 +1,131 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "OpenAPI definition",
+        "version": "v0"
+    },
+    "servers": [
+        {
+            "url": "http://mobility-service:8081",
+            "description": "Generated server url"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Mobility",
+            "description": "Operations related to transport lines"
+        }
+    ],
+    "paths": {
+        "/api/v1/transport/lines": {
+            "get": {
+                "tags": [
+                    "Mobility"
+                ],
+                "summary": "Get all transport lines",
+                "description": "Retrieves a list of all available transport lines.",
+                "operationId": "getAllLines",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/TransportLineDTO"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Mobility"
+                ],
+                "summary": "Create a new line",
+                "description": "Creates a new transport line with the provided details.",
+                "operationId": "createLine",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TransportLineDTO"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TransportLineDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/transport/lines/{id}": {
+            "get": {
+                "tags": [
+                    "Mobility"
+                ],
+                "summary": "Get a line by ID",
+                "description": "Retrieves a specific transport line by its unique identifier.",
+                "operationId": "getLineById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TransportLineDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "TransportLineDTO": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

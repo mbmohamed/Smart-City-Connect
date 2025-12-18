@@ -53,11 +53,8 @@ build_and_run() {
     H2_USER="sa"
     H2_PASS=""
 
-    # Determine if port should be exposed (only for gateway)
-    PORT_MAPPING=""
-    if [ "$service" == "api-gateway" ]; then
-        PORT_MAPPING="-p $port:$port"
-    fi
+    # Determine if port should be exposed (Expose all for local testing)
+    PORT_MAPPING="-p $port:$port"
 
     if [ "$service" == "mobility-service" ]; then
         docker run -d --name $service --network smart-city-net $PORT_MAPPING \
@@ -111,10 +108,10 @@ build_and_run() {
     echo -e "     Start: ${GREEN}OK${NC}"
 }
 
-build_and_run "mobility-service" 8081
-build_and_run "air-quality-service" 8082
-build_and_run "emergency-service" 8084
-build_and_run "citizen-engagement-service" 8085
+build_and_run "mobility-service" 9081
+build_and_run "air-quality-service" 9082
+build_and_run "emergency-service" 9095
+build_and_run "citizen-engagement-service" 9085
 build_and_run "api-gateway" 8080
 
 # AI Orchestrator (Python)
@@ -123,7 +120,7 @@ cd ai-orchestrator-service
 docker build -t ai-orchestrator-service:latest . > /dev/null
 docker rm -f ai-orchestrator-service || true
 docker run -d --name ai-orchestrator-service --network smart-city-net \
-  -e PORT=8000 -e HOST=0.0.0.0 \
+  -e PORT=8000 -e HOST=0.0.0.0 -p 9000:8000 \
   -e AIR_QUALITY_SERVICE_HOST=air-quality-service -e AIR_QUALITY_SERVICE_PORT=8082 \
   -e MOBILITY_SERVICE_HOST=mobility-service -e MOBILITY_SERVICE_PORT=8081 \
   ai-orchestrator-service:latest > /dev/null
